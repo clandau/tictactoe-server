@@ -10,7 +10,9 @@
   "author": "cel",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
+    "firebase-admin": "^9.9.0",
     "socket.io": "^4.1.2"
   }
 }
