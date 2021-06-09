@@ -4,8 +4,18 @@ const db = admin.firestore();
 
 module.exports = {
   admin,
-  async saveNewUser(data) {
-    const userData = { email: data.email, games: [], }
-    return await db.collection("users").doc(data.uid).set(userData);
-  }
+  saveNewUser,
+  createGameDocument,
+  saveGame,
+};
+
+async function saveNewUser(data) {
+  const userData = { email: data.email, games: [] };
+  return await db.collection("users").doc(data.uid).set(userData);
 }
+
+function createGameDocument() {
+  return db.collection("games").doc();
+}
+
+function saveGame(data) {}
