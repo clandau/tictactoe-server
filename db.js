@@ -6,7 +6,7 @@ module.exports = {
   admin,
   saveNewUser,
   createGameDocument,
-  saveGame,
+  saveCompletedGame,
 };
 
 async function saveNewUser(data) {
@@ -18,8 +18,35 @@ function createGameDocument() {
   return db.collection("games").doc();
 }
 
-function saveCompletedGame(id) {
-  
+async function saveCompletedGame(state) {
+  const { gameId, player1, player2, winner } = state;
+  const created = admin.firestore.FieldValue.serverTimestamp();
+  // save win and loss to user account document
+  if(winner !== "computer") saveWin(winner, gameId);
+  const loser = player1 === winner ? player2 : player1;
+  if(loser !== "computer") saveLoss(loser, gameId);
+
+  // save to games collection
+  return await db
+    .collection("games")
+    .doc(gameId)
+    .set({ player1, player2, winner, created });
 }
 
-function saveGame(data) {}
+async function saveWin(uid, gameId) {
+  return await db
+    .collection("users")
+    .doc(uid)
+    .update({
+      games: admin.firestore.FieldValue.arrayUnion({ [gameId]: "win" }),
+    });
+}
+
+async function saveLoss(uid, gameId) {
+  return await db
+    .collection("users")
+    .doc(uid)
+    .update({
+      games: admin.firestore.FieldValue.arrayUnion({ [gameId]: "loss" }),
+    });
+}

@@ -24,7 +24,6 @@ async function initGameState(player1, player2 = "computer") {
 }
 
 function handleMove(state, playerUid, coordinates) {
-  // console.log(state, playerUid, coordinates);
   const currentValue = state.player1 === playerUid ? "X" : "O";
   const board = state.board;
   board[coordinates.y][coordinates.x] = currentValue;
@@ -36,6 +35,8 @@ function handleMove(state, playerUid, coordinates) {
     else {
       state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
+    // save game to db
+    db.saveCompletedGame(state);
   } else {
     state.turn = playerUid === state.player1 ? "player2" : "player1";
   }
@@ -61,6 +62,7 @@ function handleComputerMove(state) {
     else {
       state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
+    db.saveCompletedGame(state);
   } else {
     state.turn = "player1";
   }
