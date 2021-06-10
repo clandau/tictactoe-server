@@ -27,7 +27,7 @@ async function decodeIDToken(req, res, next) {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       req["currentUser"] = decodedToken;
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
 
@@ -53,10 +53,8 @@ const io = require("socket.io")(httpServer, options);
 
 io.use(async (socket, next) => {
   const { token, uid } = socket.handshake.auth;
-  console.log(token, uid);
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    console.log(decodedToken);
     if (decodedToken.uid !== uid) {
       next(new Error("Unable to validate user."));
     } else {
@@ -69,9 +67,7 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  // verify authentication
   const { uid } = socket.handshake.auth;
-  console.log("this one: ", uid);
 
   socket.on("newGame", handleNewGame);
   socket.on("playerMove", handlePlayerMove);

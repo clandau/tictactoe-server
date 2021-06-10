@@ -34,6 +34,12 @@ async function saveCompletedGame(state) {
 }
 
 async function saveWin(uid, gameId) {
+  // update win count document
+  const winsRef = db.collection("wins").doc("winCount");
+  await winsRef.update({
+    [`counts.${uid}`]: admin.firestore.FieldValue.increment(1)
+  })
+  // add win to users object
   return await db
     .collection("users")
     .doc(uid)
