@@ -51,14 +51,27 @@ const options = {
 };
 const io = require("socket.io")(httpServer, options);
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
+  const { token, uid } = socket.handshake.auth;
+  console.log(token, uid);
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    console.log(decodedToken);
+    if (decodedToken.uid !== uid) {
+      next(new Error("Unable to validate user."));
+    } else {
+      next;
+    }
+  } catch (err) {
+    next(new Error("Unable to validate user."));
+  }
   next();
 });
 
 io.on("connection", (socket) => {
   // verify authentication
-  const { token } = socket.handshake.query;
-  console.log(token);
+  const { uid } = socket.handshake.auth;
+  console.log("this one: ", uid);
 
   socket.on("newGame", handleNewGame);
   socket.on("playerMove", handlePlayerMove);
@@ -74,7 +87,7 @@ io.on("connection", (socket) => {
       }
     } else {
       // create new game against computer
-      const newGameState = await game.initGameState(token);
+      const newGameState = await game.initGameState(uid);
       state[newGameState.gameId] = newGameState;
       rooms[socket.id] = newGameState.gameId;
       // create a socket room with the game id as the name
@@ -85,12 +98,11 @@ io.on("connection", (socket) => {
 
   function handlePlayerMove(coordinates) {
     const roomId = rooms[socket.id];
-    let currentState = game.handleMove(state[roomId], token, coordinates);
+    let currentState = game.handleMove(state[roomId], uid, coordinates);
     if (currentState.status === "complete") {
       emitGameState(roomId, currentState);
       // remove from state object
-      // remove room from rooms
-      // close room
+      state[roomId] = null;
     } else {
       emitGameState(roomId, currentState);
       if (
