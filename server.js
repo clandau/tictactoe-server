@@ -48,7 +48,7 @@ app.get("/api/newUser", async (req, res) => {
 app.get("/api/wins", async (req, res) => {
   try {
     const wins = await datastore.getWins();
-    res.status(200).send({ wins });
+    res.status(200).send(JSON.stringify(wins));
   } catch (err) {
     return res.status(500).send("Database error");
   }

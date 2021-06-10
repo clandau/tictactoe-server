@@ -23,9 +23,9 @@ async function saveCompletedGame(state) {
   const { gameId, player1, player2, winner } = state;
   const created = admin.firestore.FieldValue.serverTimestamp();
   // save win and loss to user account document
-  if(winner !== "computer") saveWin(winner, gameId);
+  if (winner !== "computer") saveWin(winner, gameId);
   const loser = player1 === winner ? player2 : player1;
-  if(loser !== "computer") saveLoss(loser, gameId);
+  if (loser !== "computer") saveLoss(loser, gameId);
 
   // save to games collection
   return await db
@@ -38,8 +38,8 @@ async function saveWin(uid, gameId) {
   // update win count document
   const winsRef = db.collection("wins").doc("winCount");
   await winsRef.update({
-    [`counts.${uid}`]: admin.firestore.FieldValue.increment(1)
-  })
+    [`counts.${uid}`]: admin.firestore.FieldValue.increment(1),
+  });
   // add win to users object
   return await db
     .collection("users")
@@ -60,5 +60,17 @@ async function saveLoss(uid, gameId) {
 
 async function getWins() {
   const res = await db.collection("wins").doc("winCount").get();
-  return res.data().counts;
+  const counts = res.data().counts;
+  // get the names and top 20
+  const top20Sorted = Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 20);
+  const returnArray = [];
+  for (let item of top20Sorted) {
+    const userDoc = await db.collection("users").doc(item[0]).get();
+    const email = userDoc.data().email;
+    const count = item[1];
+    returnArray.push({ email, count });
+  }
+  return returnArray;
 }
