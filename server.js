@@ -11,7 +11,6 @@ const availablePlayers = [];
 const rooms = {};
 const state = {};
 
-
 app.use(cors());
 // Decodes the Firebase JSON Web Token
 app.use(decodeIDToken);
@@ -52,7 +51,14 @@ const options = {
 };
 const io = require("socket.io")(httpServer, options);
 
+io.use((socket, next) => {
+  next();
+});
+
 io.on("connection", (socket) => {
+  // verify authentication
+  const { token } = socket.handshake.query;
+  console.log(token);
 
   socket.on("newGame", handleNewGame);
   socket.on("playerMove", handlePlayerMove);
@@ -68,21 +74,47 @@ io.on("connection", (socket) => {
       }
     } else {
       // create new game against computer
-      const newGameState = await game.initGameState();
+      const newGameState = await game.initGameState(token);
       state[newGameState.gameId] = newGameState;
-      socket.emit("currentState", newGameState);
+      rooms[socket.id] = newGameState.gameId;
+      // create a socket room with the game id as the name
+      socket.join(newGameState.gameId);
+      socket.emit("currentState", JSON.stringify(newGameState));
     }
   }
-  
-  function handlePlayerMove(data) {
-    // 
+
+  function handlePlayerMove(coordinates) {
+    const roomId = rooms[socket.id];
+    let currentState = game.handleMove(state[roomId], token, coordinates);
+    if (currentState.status === "complete") {
+      emitGameState(roomId, currentState);
+      // remove from state object
+      // remove room from rooms
+      // close room
+    } else {
+      emitGameState(roomId, currentState);
+      if (
+        currentState.turn === "player2" &&
+        currentState.player2 === "computer"
+      ) {
+        // wait 2 seconds before making computer's move
+        setTimeout(() => {
+          currentState = game.handleComputerMove(currentState);
+          emitGameState(roomId, currentState)
+        }, 2000);
+      }
+    }
   }
-  
+
   function handlePartnerChosen(data) {
     // put players in same room
     // send game state back to players
   }
-});
 
+  function emitGameState(room, gameState) {
+    // Send this event to everyone in the room.
+    io.sockets.in(room).emit("currentState", JSON.stringify(gameState));
+  }
+});
 
 httpServer.listen(3000);

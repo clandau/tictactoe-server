@@ -71,24 +71,36 @@ function handleComputerMove(state) {
 function checkGameStatus(board) {
   // check for row match
   for (let row of board) {
-    if (row.every((i) => i === row[0])) {
+    if (!row.includes("") && row.every((i) => i === row[0])) {
       return { gameOver: true, result: row[0] };
     }
   }
   // check for column match
   let i = 0;
   while (i < board.length) {
-    if (board[0][i] === board[1][i] && board[0][i] === board[2][i]) {
+    if (
+      board[0][i] !== "" &&
+      board[0][i] === board[1][i] &&
+      board[0][i] === board[2][i]
+    ) {
       return { gameOver: true, result: board[0][i] };
     }
     i++;
   }
 
   // check for diagonal match
-  if (board[0][0] === board[1][1] && board[0][0] === board[2][2]) {
+  if (
+    board[0][0] !== "" &&
+    board[0][0] === board[1][1] &&
+    board[0][0] === board[2][2]
+  ) {
     return { gameOver: true, result: board[0][0] };
   }
-  if (board[0][2] === board[1][1] && board[0][2] === board[2][0]) {
+  if (
+    board[0][2] !== "" &&
+    board[0][2] === board[1][1] &&
+    board[0][2] === board[2][0]
+  ) {
     return { gameOver: true, result: board[0][2] };
   }
 
