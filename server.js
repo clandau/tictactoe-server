@@ -28,9 +28,11 @@ async function decodeIDToken(req, res, next) {
       req["currentUser"] = decodedToken;
     } catch (err) {
       console.error(err);
+      next(new Error("Unable to validate user."));
     }
+  } else {
+    next(new Error("Unable to validate user."));
   }
-
   next();
 }
 
@@ -42,6 +44,15 @@ app.get("/api/newUser", async (req, res) => {
     res.status(200).send({ message: "new user added." });
   }
 });
+
+app.get("/api/wins", async (req, res) => {
+  try {
+    const wins = await datastore.getWins();
+    res.status(200).send({ wins });
+  } catch (err) {
+    return res.status(500).send("Database error");
+  }
+})
 
 const options = {
   cors: {

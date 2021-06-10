@@ -7,6 +7,7 @@ module.exports = {
   saveNewUser,
   createGameDocument,
   saveCompletedGame,
+  getWins,
 };
 
 async function saveNewUser(data) {
@@ -55,4 +56,9 @@ async function saveLoss(uid, gameId) {
     .update({
       games: admin.firestore.FieldValue.arrayUnion({ [gameId]: "loss" }),
     });
+}
+
+async function getWins() {
+  const res = await db.collection("wins").doc("winCount").get();
+  return res.data().counts;
 }
