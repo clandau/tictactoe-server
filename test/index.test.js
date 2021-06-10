@@ -2,8 +2,8 @@ const assert = require("chai").assert;
 
 const game = require("../game");
 
-describe.skip("handle a game move logic", () => {
-  let state = { player1: "123", board: [[], [], []], status: "incomplete" };
+describe("handle a game move logic", () => {
+  let state = { player1: "123", player2: "computer", board: [[], [], []], status: "incomplete" };
   let playerUid = "123";
 
   let boardWithRowWin = [
@@ -67,8 +67,9 @@ describe.skip("handle a game move logic", () => {
     assert.deepEqual(result, {
       board: boardWithRowWinResult,
       player1: playerUid,
+      player2: "computer",
       status: "complete",
-      winner: "player1",
+      winner: playerUid,
     });
   });
 
@@ -77,6 +78,7 @@ describe.skip("handle a game move logic", () => {
       player1: "123",
       board: boardWithColumnWin,
       status: "incomplete",
+      player2: "computer",
     };
     let coordinates = { y: 1, x: 2 };
     state.board = boardWithColumnWin;
@@ -85,8 +87,9 @@ describe.skip("handle a game move logic", () => {
     assert.deepEqual(result, {
       board: boardWithColumnWinResult,
       player1: playerUid,
+      player2: "computer",
       status: "complete",
-      winner: "player1",
+      winner: playerUid,
     });
   });
 
@@ -95,6 +98,7 @@ describe.skip("handle a game move logic", () => {
       player1: "123",
       board: boardWithDiagonalWin,
       status: "incomplete",
+      player2: "computer",
     };
     let coordinates = { y: 2, x: 2 };
     state.board = boardWithDiagonalWin;
@@ -102,8 +106,9 @@ describe.skip("handle a game move logic", () => {
     assert.deepEqual(result, {
       board: boardWithDiagonalWinResult,
       player1: playerUid,
+      player2: "computer",
       status: "complete",
-      winner: "player2",
+      winner: "computer",
     });
   });
 

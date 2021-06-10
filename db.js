@@ -18,4 +18,8 @@ function createGameDocument() {
   return db.collection("games").doc();
 }
 
+function saveCompletedGame(id) {
+  
+}
+
 function saveGame(data) {}

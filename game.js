@@ -34,7 +34,7 @@ function handleMove(state, playerUid, coordinates) {
     state.status = "complete";
     if (boardResult.result === "draw") state.winner = "draw";
     else {
-      state.winner = boardResult.result === "X" ? "player1" : "player2";
+      state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
   } else {
     state.turn = playerUid === state.player1 ? "player2" : "player1";
@@ -59,7 +59,7 @@ function handleComputerMove(state) {
     state.status = "complete";
     if (boardResult.result === "draw") state.winner = "draw";
     else {
-      state.winner = boardResult.result === "X" ? "player1" : "player2";
+      state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
   } else {
     state.turn = "player1";
