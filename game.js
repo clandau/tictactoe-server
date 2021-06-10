@@ -54,9 +54,17 @@ function handleComputerMove(state) {
   while (flatBoard.length) {
     twoDimensionalBoard.push(flatBoard.splice(0, 3));
   }
-  console.log(twoDimensionalBoard)
+  const boardResult = checkGameStatus(twoDimensionalBoard);
+  if (boardResult.gameOver) {
+    state.status = "complete";
+    if (boardResult.result === "draw") state.winner = "draw";
+    else {
+      state.winner = boardResult.result === "X" ? "player1" : "player2";
+    }
+  } else {
+    state.turn = "player1";
+  }
   state.board = twoDimensionalBoard;
-  state.turn = "player1";
   return state;
 }
 
