@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const app = require("express")();
 const cors = require("cors");
 const admin = require("./db").admin;
