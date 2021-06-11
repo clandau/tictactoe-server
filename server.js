@@ -13,7 +13,12 @@ const availableRooms = [];
 const rooms = {};
 const state = {};
 
-app.use(cors());
+var corsOptions = {
+  origin: 'https://tic-tac-toe-dfe95.web.app/',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions));
 app.use(decodeIDToken);
 
 /**
