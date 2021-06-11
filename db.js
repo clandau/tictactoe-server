@@ -80,7 +80,11 @@ async function getGames() {
   // store emails so we don't look them up multiple times
   const emails = {};
   try {
-    const snapshot = await db.collection("games").orderBy("created", "desc").limit(20).get();
+    const snapshot = await db
+      .collection("games")
+      .orderBy("created", "desc")
+      .limit(20)
+      .get();
     if (snapshot.empty) return null;
     const returnArray = [];
     for (let doc of snapshot.docs) {
@@ -90,7 +94,7 @@ async function getGames() {
         gameData.player1 = emails[player1];
       } else {
         const player1Doc = await db.collection("users").doc(player1).get();
-        
+
         const email = player1Doc.data().email;
         gameData.player1 = email;
         emails[player1] = email;
@@ -105,12 +109,12 @@ async function getGames() {
           gameData.player2 = player2Doc.data().email;
         }
       }
-      gameData.winner = player1 === winner ? gameData.player1 : gameData.player2;
+      gameData.winner =
+        player1 === winner ? gameData.player1 : gameData.player2;
       returnArray.push(gameData);
     }
     return returnArray;
-
-  } catch(err) {
+  } catch (err) {
     console.error(err);
   }
 }

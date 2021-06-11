@@ -7,15 +7,15 @@ const datastore = require("./db.js");
 const game = require("./game");
 
 const availableRooms = [];
-// to hold game rooms
+
 const rooms = {};
 const state = {};
 
 app.use(cors());
-// Decodes the Firebase JSON Web Token
 app.use(decodeIDToken);
 
 /**
+ * API middleware
  * Decodes the JSON Web Token sent via the frontend app
  * Makes the currentUser (firebase) data available on the body.
  */
@@ -36,6 +36,9 @@ async function decodeIDToken(req, res, next) {
   next();
 }
 
+/**
+ * adds a new user to the database
+ */
 app.get("/api/newUser", async (req, res) => {
   const user = req["currentUser"];
   if (!user) res.status(403).send("Not logged in.");
@@ -45,6 +48,9 @@ app.get("/api/newUser", async (req, res) => {
   }
 });
 
+/**
+ * GET the wins for the leaderboard
+ */
 app.get("/api/wins", async (req, res) => {
   try {
     const wins = await datastore.getWins();
@@ -54,6 +60,9 @@ app.get("/api/wins", async (req, res) => {
   }
 });
 
+/**
+ * GET the top 20 most recent games
+ */
 app.get("/api/games", async (req, res) => {
   try {
     const games = await datastore.getGames();
@@ -64,6 +73,9 @@ app.get("/api/games", async (req, res) => {
   }
 });
 
+/**
+ * setting up sockets for game play
+ */
 const options = {
   cors: {
     origin: "http://localhost:8080",
@@ -128,7 +140,7 @@ io.on("connection", (socket) => {
         // create a socket room with the game id as the name
         socket.join(newGameState.gameId);
         // emit message that they're waiting for a player to join
-        socket.emit("waitingPartner")
+        socket.emit("waitingPartner");
       }
     } else {
       // create new game against computer
@@ -137,7 +149,7 @@ io.on("connection", (socket) => {
       rooms[socket.id] = newGameState.gameId;
       // create a socket room with the game id as the name
       socket.join(newGameState.gameId);
-      emitGameState(newGameState.gameId, newGameState)
+      emitGameState(newGameState.gameId, newGameState);
     }
   }
 
