@@ -4,6 +4,7 @@ module.exports = {
   initGameState,
   handleMove,
   handleComputerMove,
+  addPlayer2,
 };
 
 async function initGameState(player1, player2 = "computer") {
@@ -20,6 +21,11 @@ async function initGameState(player1, player2 = "computer") {
   };
   const gameRef = await db.createGameDocument();
   state.gameId = gameRef.id;
+  return state;
+}
+
+function addPlayer2(id, state) {
+  state.player2 = id;
   return state;
 }
 

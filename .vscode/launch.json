@@ -4,15 +4,15 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-  
     {
       "type": "pwa-node",
       "request": "launch",
       "name": "Launch Program",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/server.js"
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server.js",
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/cel-learnics/Develop/github/take-homes/tic-tac-toe/server/tic-tac-toe-dfe95-firebase-adminsdk-twap2-4a2c1d8244.json"
+      }
     }
   ]
 }

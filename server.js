@@ -6,7 +6,7 @@ const httpServer = require("http").createServer(app);
 const datastore = require("./db.js");
 const game = require("./game");
 
-const availablePlayers = [];
+const availableRooms = [];
 // to hold game rooms
 const rooms = {};
 const state = {};
@@ -52,17 +52,17 @@ app.get("/api/wins", async (req, res) => {
   } catch (err) {
     return res.status(500).send("Database error.");
   }
-})
+});
 
 app.get("/api/games", async (req, res) => {
   try {
     const games = await datastore.getGames();
     res.status(200).send(JSON.stringify(games));
-  } catch(err) {
+  } catch (err) {
     console.error(err);
-    return res.status(500).send("Database error.")
+    return res.status(500).send("Database error.");
   }
-})
+});
 
 const options = {
   cors: {
@@ -72,6 +72,7 @@ const options = {
 };
 const io = require("socket.io")(httpServer, options);
 
+// authorization middleware for sockets
 io.use(async (socket, next) => {
   const { token, uid } = socket.handshake.auth;
   try {
@@ -79,7 +80,7 @@ io.use(async (socket, next) => {
     if (decodedToken.uid !== uid) {
       next(new Error("Unable to validate user."));
     } else {
-      next;
+      return next();
     }
   } catch (err) {
     next(new Error("Unable to validate user."));
@@ -92,15 +93,32 @@ io.on("connection", (socket) => {
 
   socket.on("newGame", handleNewGame);
   socket.on("playerMove", handlePlayerMove);
-  socket.on("partnerChosen", handlePartnerChosen);
+  socket.on("disconnect", () => {
+    console.log("disconnect event!", socket.id);
+  });
 
   async function handleNewGame(data) {
     if (data.twoPlayer) {
-      // send list of available games / users
-      if (availablePlayers.length) {
-        socket.emit("playerOptions", { players: availablePlayers });
+      if (availableRooms.length) {
+        // shift room from available array
+        const roomId = availableRooms.shift();
+        // add this player to the room
+        socket.join(roomId);
+        // add player to room and state as player2
+        rooms[socket.id] = roomId;
+        const currentState = game.addPlayer2(uid, state[roomId]);
+        // emit current game state
+        emitGameState(roomId, currentState);
       } else {
-        // create new twoPlayer game, and add this player as available
+        // create new game
+        const newGameState = await game.initGameState(uid, null);
+        state[newGameState.gameId] = newGameState;
+        rooms[socket.id] = newGameState.gameId;
+        availableRooms.push(newGameState.gameId);
+        // create a socket room with the game id as the name
+        socket.join(newGameState.gameId);
+        // emit message that they're waiting for a player to join
+        socket.emit("waitingPartner")
       }
     } else {
       // create new game against computer
@@ -109,7 +127,7 @@ io.on("connection", (socket) => {
       rooms[socket.id] = newGameState.gameId;
       // create a socket room with the game id as the name
       socket.join(newGameState.gameId);
-      socket.emit("currentState", JSON.stringify(newGameState));
+      emitGameState(newGameState.gameId, newGameState)
     }
   }
 
@@ -129,15 +147,10 @@ io.on("connection", (socket) => {
         // wait 2 seconds before making computer's move
         setTimeout(() => {
           currentState = game.handleComputerMove(currentState);
-          emitGameState(roomId, currentState)
+          emitGameState(roomId, currentState);
         }, 2000);
       }
     }
-  }
-
-  function handlePartnerChosen(data) {
-    // put players in same room
-    // send game state back to players
   }
 
   function emitGameState(room, gameState) {
