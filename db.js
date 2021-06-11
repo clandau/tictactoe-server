@@ -8,6 +8,7 @@ module.exports = {
   createGameDocument,
   saveCompletedGame,
   getWins,
+  getGames,
 };
 
 async function saveNewUser(data) {
@@ -73,4 +74,43 @@ async function getWins() {
     returnArray.push({ email, count });
   }
   return returnArray;
+}
+
+async function getGames() {
+  // store emails so we don't look them up multiple times
+  const emails = {};
+  try {
+    const snapshot = await db.collection("games").orderBy("created", "desc").limit(20).get();
+    if (snapshot.empty) return null;
+    const returnArray = [];
+    for (let doc of snapshot.docs) {
+      const { created, player1, player2, winner } = doc.data();
+      const gameData = { created: created.toDate() };
+      if (emails[player1]) {
+        gameData.player1 = emails[player1];
+      } else {
+        const player1Doc = await db.collection("users").doc(player1).get();
+        
+        const email = player1Doc.data().email;
+        gameData.player1 = email;
+        emails[player1] = email;
+      }
+      if (player2 === "computer") {
+        gameData.player2 = player2;
+      } else {
+        if (emails[player2]) {
+          gameData.player2 = emails[player2];
+        } else {
+          const player2Doc = await db.collection("users").doc(player2).get();
+          gameData.player2 = player2Doc.data().email;
+        }
+      }
+      gameData.winner = player1 === winner ? gameData.player1 : gameData.player2;
+      returnArray.push(gameData);
+    }
+    return returnArray;
+
+  } catch(err) {
+    console.error(err);
+  }
 }

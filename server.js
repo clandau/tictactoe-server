@@ -50,7 +50,17 @@ app.get("/api/wins", async (req, res) => {
     const wins = await datastore.getWins();
     res.status(200).send(JSON.stringify(wins));
   } catch (err) {
-    return res.status(500).send("Database error");
+    return res.status(500).send("Database error.");
+  }
+})
+
+app.get("/api/games", async (req, res) => {
+  try {
+    const games = await datastore.getGames();
+    res.status(200).send(JSON.stringify(games));
+  } catch(err) {
+    console.error(err);
+    return res.status(500).send("Database error.")
   }
 })
 
