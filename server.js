@@ -80,7 +80,7 @@ app.get("/api/games", async (req, res) => {
  */
 const options = {
   cors: {
-    origin: "http://localhost:8080",
+    origin: "https://tic-tac-toe-dfe95.web.app",
     methods: ["GET", "POST"],
   },
 };
