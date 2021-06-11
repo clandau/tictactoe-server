@@ -187,4 +187,4 @@ function emitPlayerLeft(room) {
   io.sockets.in(room).emit("playerLeft");
 }
 
-httpServer.listen(3000);
+httpServer.listen(process.env.PORT || 3000);
