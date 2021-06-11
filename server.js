@@ -95,6 +95,16 @@ io.on("connection", (socket) => {
   socket.on("playerMove", handlePlayerMove);
   socket.on("disconnect", () => {
     console.log("disconnect event!", socket.id);
+    const roomId = rooms[socket.id];
+    if (!roomId) return;
+    const currentState = state[roomId];
+    if (
+      currentState?.player2 !== "computer" &&
+      currentState?.status === "incomplete"
+    ) {
+      emitPlayerLeft(roomId);
+      state[roomId] = null;
+    }
   });
 
   async function handleNewGame(data) {
@@ -152,11 +162,15 @@ io.on("connection", (socket) => {
       }
     }
   }
-
-  function emitGameState(room, gameState) {
-    // Send this event to everyone in the room.
-    io.sockets.in(room).emit("currentState", JSON.stringify(gameState));
-  }
 });
+
+function emitGameState(room, gameState) {
+  // Send this event to everyone in the room.
+  io.sockets.in(room).emit("currentState", JSON.stringify(gameState));
+}
+
+function emitPlayerLeft(room) {
+  io.sockets.in(room).emit("playerLeft");
+}
 
 httpServer.listen(3000);
