@@ -4,7 +4,7 @@ admin.initializeApp({
     type: "service_account",
     project_id: process.env.FIREBASE_PROJECT_ID,
     private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     client_email: process.env.FIREBASE_CLIENT_EMAIL,
     client_id: process.env.FIREBASE_CLIENT_ID,
     auth_uri: process.env.FIREBASE_AUTH_URI,
@@ -105,7 +105,7 @@ async function getGames() {
     const returnArray = [];
     for (let doc of snapshot.docs) {
       const { created, player1, player2, winner } = doc.data();
-      const gameData = { created: created.toDate() };
+      const gameData = { created: created.toDate(), winner };
       if (emails[player1]) {
         gameData.player1 = emails[player1];
       } else {
@@ -125,8 +125,10 @@ async function getGames() {
           gameData.player2 = player2Doc.data().email;
         }
       }
-      gameData.winner =
-        player1 === winner ? gameData.player1 : gameData.player2;
+      if (winner !== "draw") {
+        gameData.winner =
+          player1 === winner ? gameData.player1 : gameData.player2;
+      }
       returnArray.push(gameData);
     }
     return returnArray;
