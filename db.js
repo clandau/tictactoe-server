@@ -38,9 +38,11 @@ async function saveCompletedGame(state) {
   const { gameId, player1, player2, winner } = state;
   const created = admin.firestore.FieldValue.serverTimestamp();
   // save win and loss to user account document
-  if (winner !== "computer") saveWin(winner, gameId);
-  const loser = player1 === winner ? player2 : player1;
-  if (loser !== "computer") saveLoss(loser, gameId);
+  if (winner !== "draw") {
+    if (winner !== "computer") saveWin(winner, gameId);
+    const loser = player1 === winner ? player2 : player1;
+    if (loser !== "computer") saveLoss(loser, gameId);
+  }
 
   // save to games collection
   return await db
