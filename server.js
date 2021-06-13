@@ -186,11 +186,11 @@ io.on("connection", (socket) => {
         currentState.turn === "player2" &&
         currentState.player2 === "computer"
       ) {
-        // wait 2 seconds before making computer's move
+        // wait 1 second before making computer's move
         setTimeout(() => {
           currentState = game.handleComputerMove(currentState);
           emitGameState(roomId, currentState);
-        }, 2000);
+        }, 1000);
       }
     }
   }
