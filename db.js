@@ -27,7 +27,16 @@ module.exports = {
 
 async function saveNewUser(data) {
   const userData = { email: data.email, games: [] };
-  return await db.collection("users").doc(data.uid).set(userData);
+  // check if user exists in db before creating a new one
+  const doc = await db.collection("users").doc(data.uid).get();
+  if (!doc.exists) {
+    return await db.collection("users").doc(data.uid).set(userData);
+  } else if (!doc.data().email) {
+    return await doc.ref.update({email: data.email });
+  } else {
+    // user already in db with needed info
+    return;
+  }
 }
 
 function createGameDocument() {
@@ -39,11 +48,10 @@ async function saveCompletedGame(state) {
   const created = admin.firestore.FieldValue.serverTimestamp();
   // save win and loss to user account document
   if (winner !== "draw") {
-    if (winner !== "computer") saveWin(winner, gameId);
+    if (winner !== "computer") await saveWin(winner, gameId);
     const loser = player1 === winner ? player2 : player1;
-    if (loser !== "computer") saveLoss(loser, gameId);
+    if (loser !== "computer") await saveLoss(loser, gameId);
   }
-
   // save to games collection
   return await db
     .collection("games")
@@ -57,6 +65,7 @@ async function saveWin(uid, gameId) {
   await winsRef.update({
     [`counts.${uid}`]: admin.firestore.FieldValue.increment(1),
   });
+
   // add win to users object
   return await db
     .collection("users")

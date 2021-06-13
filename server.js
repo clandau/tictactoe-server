@@ -32,7 +32,6 @@ app.use(decodeIDToken);
 async function decodeIDToken(req, res, next) {
   if (req.headers?.authorization?.startsWith("Bearer ")) {
     const idToken = req.headers.authorization.split("Bearer ")[1];
-
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       req["currentUser"] = decodedToken;
@@ -45,18 +44,6 @@ async function decodeIDToken(req, res, next) {
   }
   next();
 }
-
-/**
- * adds a new user to the database
- */
-app.get("/api/newUser", async (req, res) => {
-  const user = req["currentUser"];
-  if (!user) res.status(403).send("Not logged in.");
-  else {
-    await datastore.saveNewUser(user);
-    res.status(200).send({ message: "new user added." });
-  }
-});
 
 /**
  * GET the wins for the leaderboard
@@ -108,6 +95,12 @@ io.use(async (socket, next) => {
     if (decodedToken.uid !== uid) {
       next(new Error("Unable to validate user."));
     } else {
+      // add user to db when they start a game
+      const res = await datastore.saveNewUser({
+        email: decodedToken.email,
+        uid: decodedToken.uid,
+      });
+      console.log(res);
       return next();
     }
   } catch (err) {
