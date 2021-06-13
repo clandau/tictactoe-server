@@ -125,6 +125,10 @@ io.on("connection", (socket) => {
     console.log("disconnect event!", socket.id);
     const roomId = rooms[socket.id];
     if (!roomId) return;
+    // if they leave while waiting for a partner, remove it from available rooms
+    if (availableRooms.indexOf(roomId) !== -1) {
+      availableRooms.splice(availableRooms.indexOf(roomId), 1);
+    }
     const currentState = state[roomId];
     if (
       currentState?.player2 !== "computer" &&
