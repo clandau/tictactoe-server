@@ -41,8 +41,12 @@ function handleMove(state, playerUid, coordinates) {
     else {
       state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
-    // save game to db
-    db.saveCompletedGame(state);
+    try {
+      // save game to db
+      db.saveCompletedGame(state);
+    } catch (err) {
+      console.error(err);
+    }
   } else {
     state.turn = playerUid === state.player1 ? "player2" : "player1";
   }
@@ -68,7 +72,11 @@ function handleComputerMove(state) {
     else {
       state.winner = boardResult.result === "X" ? state.player1 : state.player2;
     }
-    db.saveCompletedGame(state);
+    try {
+      db.saveCompletedGame(state);
+    } catch (err) {
+      console.error(err);
+    }
   } else {
     state.turn = "player1";
   }
