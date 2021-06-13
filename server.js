@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 const app = require("express")();
 const cors = require("cors");
@@ -13,11 +13,15 @@ const availableRooms = [];
 const rooms = {};
 const state = {};
 
-const corsOptions = {
-  origin: "https://tic-tac-toe-dfe95.web.app",
+if (process.env.NODE_ENV === "develop") {
+  app.use(cors());
+} else {
+  const corsOptions = {
+    origin: "https://tic-tac-toe-dfe95.web.app",
+  };
+  app.use(cors(corsOptions));
 }
 
-app.use(cors(corsOptions));
 app.use(decodeIDToken);
 
 /**
@@ -82,12 +86,18 @@ app.get("/api/games", async (req, res) => {
 /**
  * setting up sockets for game play
  */
+const origin =
+  process.env.NODE_ENV === "develop"
+    ? "http://localhost:8080"
+    : "https://tic-tac-toe-dfe95.web.app";
+
 const options = {
   cors: {
-    origin: "https://tic-tac-toe-dfe95.web.app",
+    origin,
     methods: ["GET", "POST"],
   },
 };
+
 const io = require("socket.io")(httpServer, options);
 
 // authorization middleware for sockets
