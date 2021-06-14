@@ -26,7 +26,7 @@ app.use(decodeIDToken);
 
 /**
  * API middleware
- * Decodes the JSON Web Token sent via the frontend app
+ * Decodes the JSON Web Token sent via the frontend app to verify authentication
  * Makes the currentUser (firebase) data available on the body.
  */
 async function decodeIDToken(req, res, next) {
@@ -87,7 +87,10 @@ const options = {
 
 const io = require("socket.io")(httpServer, options);
 
-// authorization middleware for sockets
+/**
+ * socket.io middleware verifies that user is authenticated
+ * and adds a users document in the database if they're not already there
+ */
 io.use(async (socket, next) => {
   const { token, uid } = socket.handshake.auth;
   try {
@@ -96,11 +99,10 @@ io.use(async (socket, next) => {
       next(new Error("Unable to validate user."));
     } else {
       // add user to db when they start a game
-      const res = await datastore.saveNewUser({
+      await datastore.saveNewUser({
         email: decodedToken.email,
         uid: decodedToken.uid,
       });
-      console.log(res);
       return next();
     }
   } catch (err) {
@@ -114,6 +116,10 @@ io.on("connection", (socket) => {
 
   socket.on("newGame", handleNewGame);
   socket.on("playerMove", handlePlayerMove);
+
+  /**
+   * handle a disconnect event
+   */
   socket.on("disconnect", () => {
     console.log("disconnect event!", socket.id);
     const roomId = rooms[socket.id];
@@ -123,17 +129,20 @@ io.on("connection", (socket) => {
       availableRooms.splice(availableRooms.indexOf(roomId), 1);
     }
     const currentState = state[roomId];
+    // if the user had an in-progress, 2-player game, notify other user
     if (
       currentState?.player2 !== "computer" &&
       currentState?.status === "incomplete"
     ) {
       emitPlayerLeft(roomId);
+      // remove the game from state
       state[roomId] = null;
     }
   });
 
   async function handleNewGame(data) {
     if (data.twoPlayer) {
+      // if there is a room waiting for a 2nd player, add this user to the room
       if (availableRooms.length) {
         // shift room from available array
         const roomId = availableRooms.shift();
@@ -145,7 +154,7 @@ io.on("connection", (socket) => {
         // emit current game state
         emitGameState(roomId, currentState);
       } else {
-        // create new game
+        // if there are no players waiting, create a game and set the room to available
         const newGameState = await game.initGameState(uid, null);
         state[newGameState.gameId] = newGameState;
         rooms[socket.id] = newGameState.gameId;
@@ -156,7 +165,7 @@ io.on("connection", (socket) => {
         socket.emit("waitingPartner");
       }
     } else {
-      // create new game against computer
+      // new 1-player game. create new game against computer
       const newGameState = await game.initGameState(uid);
       state[newGameState.gameId] = newGameState;
       rooms[socket.id] = newGameState.gameId;

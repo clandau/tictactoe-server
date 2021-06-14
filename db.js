@@ -38,7 +38,11 @@ async function saveNewUser(data) {
     return;
   }
 }
-
+/**
+ * create a game document in Firestore, we'll use the id to identify the game
+ * and save the game data to it once it's completed
+ * @returns a new game document 
+ */
 function createGameDocument() {
   return db.collection("games").doc();
 }
@@ -74,7 +78,7 @@ async function saveWin(uid, gameId) {
       games: admin.firestore.FieldValue.arrayUnion({ [gameId]: "win" }),
     });
 }
-
+// add loss to users object
 async function saveLoss(uid, gameId) {
   return await db
     .collection("users")
@@ -84,6 +88,9 @@ async function saveLoss(uid, gameId) {
     });
 }
 
+/**
+ * @returns an array of the 20 users with the most wins and their win counts
+ */
 async function getWins() {
   const res = await db.collection("wins").doc("winCount").get();
   const counts = res.data().counts;
@@ -101,6 +108,9 @@ async function getWins() {
   return returnArray;
 }
 
+/**
+ * @returns an array of game data for the 20 most recent games
+ */
 async function getGames() {
   // store emails so we don't look them up multiple times
   const emails = {};
