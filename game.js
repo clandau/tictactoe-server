@@ -79,10 +79,12 @@ function handleMove(state, playerUid, coordinates) {
  */
 function handleComputerMove(state) {
   const flatBoard = state.board.flat();
-  const available = [];
-  flatBoard.forEach((cell, index) => {
-    if (cell === "") available.push(index);
-  });
+  const available = flatBoard.reduce((acc, curr, index) => {
+    if (curr === "") {
+      acc.push(index);
+    }
+    return acc;
+  }, [])
   const index = Math.floor(Math.random() * available.length);
   flatBoard[available[index]] = "O";
   const twoDimensionalBoard = [];
